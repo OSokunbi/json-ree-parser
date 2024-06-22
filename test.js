@@ -7,7 +7,7 @@ const jsonTreeToHTMLList = (data, indentation = 0) => {
   const generateOpeningTag = (tag, attributes = {}) => {
     let attrs = "";
     for (const [key, value] of Object.entries(attributes)) {
-      if (value) {
+      if (value !== undefined && value !== null) {
         attrs += ` ${key}="${value}"`;
       }
     }
@@ -18,16 +18,16 @@ const jsonTreeToHTMLList = (data, indentation = 0) => {
   const generateSelfClosingTag = (tag, attributes = {}) => {
     let attrs = "";
     for (const [key, value] of Object.entries(attributes)) {
-      if (value) {
+      if (value !== undefined && value !== null) {
         attrs += ` ${key}="${value}"`;
       }
     }
     return `<${tag}${attrs} />`;
   };
 
-  // container tags that usually/,might contain other elements
+  // container tags that usually/might contain other elements
   if (["ul", "ol", "div", "header", "footer", "section", "article", "nav", "aside", "main", "table", "thead", "tbody", "tfoot", "tr"].includes(node.tag)) {
-    res += `${indent}${generateOpeningTag(node.tag)}\n`;
+    res += `${indent}${generateOpeningTag(node.tag, node.attributes)}\n`;
     if (node.children) {
       node.children.forEach(child => {
         res += jsonTreeToHTMLList(child, indentation + 1);
@@ -37,8 +37,10 @@ const jsonTreeToHTMLList = (data, indentation = 0) => {
 
   } else if (["li", "td", "th", "p", "a", "span", "strong", "em", "b", "i", "u", "mark", "code", "pre", "h1", "h2", "h3", "h4", "h5", "h6"].includes(node.tag)) {
     // tags that might contain text and/or other inline elements
-    let attributes = {};
+    let attributes = { ...node.attributes };
     if (node.tag === "a" && node.href) attributes.href = node.href;
+    if (node.onclick) attributes.onclick = node.onclick;
+    if (node.class) attributes.class = node.class;
     res += `${indent}${generateOpeningTag(node.tag, attributes)}`;
     if (node.text) res += `${node.text}`;
     if (node.children) {
@@ -57,18 +59,21 @@ const jsonTreeToHTMLList = (data, indentation = 0) => {
       rel: node.rel || "",
       type: node.type || "",
       name: node.name || "",
-      content: node.content || ""
+      content: node.content || "",
+      ...node.attributes
     };
     res += `${indent}${generateSelfClosingTag(node.tag, attributes)}\n`;
 
   } else if (["form", "button", "textarea", "select", "label"].includes(node.tag)) {
     // form-related tags
-    let attributes = {};
+    let attributes = { ...node.attributes };
     if (node.tag === "form" && node.action) attributes.action = node.action;
     if (node.tag === "button" && node.type) attributes.type = node.type;
     if (node.tag === "textarea" && node.placeholder) attributes.placeholder = node.placeholder;
     if (node.tag === "select" && node.name) attributes.name = node.name;
     if (node.tag === "label" && node.for) attributes.for = node.for;
+    if (node.onclick) attributes.onclick = node.onclick;
+    if (node.class) attributes.class = node.class;
     res += `${indent}${generateOpeningTag(node.tag, attributes)}${node.text || ""}`;
     if (node.children) {
       res += "\n";
@@ -81,7 +86,8 @@ const jsonTreeToHTMLList = (data, indentation = 0) => {
 
   } else if (node.tag === "option") {
     // opts within a <select> element
-    res += `${indent}${generateOpeningTag("option", { value: node.value })}${node.text || ""}</option>\n`;
+    let attributes = { value: node.value, ...node.attributes };
+    res += `${indent}${generateOpeningTag("option", attributes)}${node.text || ""}</option>\n`;
 
   } else if (["video", "audio", "iframe"].includes(node.tag)) {
     // media tags like <video>, <audio>, and <iframe>
@@ -91,7 +97,8 @@ const jsonTreeToHTMLList = (data, indentation = 0) => {
       autoplay: node.autoplay ? "autoplay" : "",
       loop: node.loop ? "loop" : "",
       muted: node.muted ? "muted" : "",
-      frameborder: node.frameborder || ""
+      frameborder: node.frameborder || "",
+      ...node.attributes
     };
     res += `${indent}${generateOpeningTag(node.tag, attributes)}\n`;
     if (node.children) {
@@ -250,7 +257,17 @@ const example2 = `{
     },
     {
       "tag": "footer",
-      "text": "Footer content here."
+      "children": [
+        {
+          "tag": "p",
+          "text": "Footer content here."
+        },
+        {
+          "tag": "a",
+          "href": "https://www.example.com",
+          "text": "Contact Us"
+        }
+      ]
     }
   ]
 }`
@@ -304,6 +321,36 @@ const example3 = `{
     }
   ]
 }`
+
+const example4 = `{
+  "tag": "div",
+  "attributes": {
+    "class": "container"
+  },
+  "children": [
+    {
+      "tag": "p",
+      "text": "This is a paragraph with a link to ",
+      "children": [
+        {
+          "tag": "a",
+          "href": "https://www.example.com",
+          "text": "Example",
+          "onclick": "handleClick()"
+        }
+      ]
+    },
+    {
+      "tag": "footer",
+      "children": [
+        {
+          "tag": "p",
+          "text": "Footer content here."
+        }
+      ]
+    }
+  ]
+}`;
 console.log("example 1")
 console.log("--------")
 let result = jsonTreeToHTMLList(JSON.parse(example1), 0);
@@ -317,4 +364,9 @@ console.log(result);
 console.log("\n\nexample 3");
 console.log("--------")
 result = jsonTreeToHTMLList(JSON.parse(example3), 0);
+console.log(result);
+
+console.log("\n\nexample 4");
+console.log("--------")
+result = jsonTreeToHTMLList(JSON.parse(example4), 0);
 console.log(result);
