@@ -6,26 +6,6 @@ when might you use this? lol, idk.
 here's a couple examples: 
 
 ```javascript
-const data = `{
-  "tag": "div",
-  "children": [
-    {
-      "tag": "p",
-      "text": "This is a paragraph with a link to ",
-      "children": [
-        {
-          "tag": "a",
-          "href": "https://www.example.com",
-          "text": "Example"
-        }
-      ]
-    },
-    {
-      "tag": "footer",
-      "text": "Footer content here."
-    }
-  ]
-}`;
 
 const example1 = `{
   "tag": "div",
