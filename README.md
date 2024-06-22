@@ -243,7 +243,7 @@ const example4 = `{
 ```
 
 these, in order used as inputs to the function will produce the following html: 
-
+```
 example 1
 --------
 <div>
@@ -314,3 +314,4 @@ example 4
     <p>Footer content here.</p>
   </footer>
 </div>
+```
